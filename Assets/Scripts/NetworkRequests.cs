@@ -15,9 +15,10 @@ public class NetworkRequests : MonoBehaviour
 
     private void robotAction(int input) {
 
-        string command;
+        string command = null;
         string endpoint; 
 	     
+        //Decides the action based on the number input 
     	switch (input) {
             case 0:
                 command = "Forward";
@@ -48,23 +49,30 @@ public class NetworkRequests : MonoBehaviour
                 Debug.Log("Invalid command");
                 break;
 			      		
-    	} 
+    	}
+        if (command == null) Debug.Log("command is null"); else Debug.Log(command);
     }
 
     IEnumerator SendRequest(string json, string endpoint) {
-        UnityWebRequest request = new UnityWebRequest(robotURL + endpoint, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
+        
+        //The "using" block prevents memory leaks Unity web request"	
+	    using (UnityWebRequest request = new UnityWebRequest(robotURL + endpoint, "GET")) { 
+	
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
 
-        yield return request.SendWebRequest();
+            yield return request.SendWebRequest();
 
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
-            Debug.LogError(request.error);	
-	    }
-        else {
-            Debug.Log(request.downloadHandler.text);	
-	    }
+            if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
+                Debug.LogError(request.error);
+                Debug.Log("_____________________");
+                Debug.LogError(request.method);
+            }
+            else {
+            Debug.Log(request.downloadHandler.text);
+	        }
+        }
     } 
 }
